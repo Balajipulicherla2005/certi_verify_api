@@ -1,39 +1,122 @@
-require('dotenv').config();
-const app = require('./app');
-const { connectDB } = require('./config/database');
+// require("dotenv").config();
 
-const PORT = parseInt(process.env.PORT) || 5001;
+// const express = require("express");
+// const cors = require("cors");
+// const mysql = require("mysql2");
 
-const startServer = async () => {
-  try {
-    await connectDB();
+// const app = express();
 
-    const server = app.listen(PORT, () => {
-      console.log(`
-╔══════════════════════════════════════════════════════════════╗
-║         Certificate Verification API v1.0.0                  ║
-╠══════════════════════════════════════════════════════════════╣
-║  🚀  Running   → http://localhost:${PORT}                      ║
-║  📋  API Base  → http://localhost:${PORT}/api                  ║
-║  ❤️   Health   → http://localhost:${PORT}/health               ║
-╚══════════════════════════════════════════════════════════════╝
-      `);
-    });
+// app.use(cors());
+// app.use(express.json());
 
-    const shutdown = (signal) => {
-      console.log(`\n⚠️  ${signal} received. Shutting down gracefully...`);
-      server.close(() => { console.log('✅ Server closed'); process.exit(0); });
-    };
+// /* ───────── MYSQL CONNECTION ───────── */
 
-    process.on('SIGTERM', () => shutdown('SIGTERM'));
-    process.on('SIGINT',  () => shutdown('SIGINT'));
-    process.on('uncaughtException',  (err) => { console.error('❌ Uncaught Exception:', err); process.exit(1); });
-    process.on('unhandledRejection', (reason) => { console.error('❌ Unhandled Rejection:', reason); process.exit(1); });
+// const db = mysql.createConnection({
+//   host: "localhost",
+//   user: "root",
+//   password: "kkck51584",
+//   database: "cert_verify_db",
 
-  } catch (error) {
-    console.error('❌ Failed to start server:', error);
-    process.exit(1);
+
+// });
+
+// db.connect((err) => {
+//   if (err) {
+//     console.log("❌ MySQL connection failed:", err.message);
+//   } else {
+//     console.log("✅ MySQL connected successfully");
+//   }
+// });
+
+// /* ───────── HEALTH CHECK ───────── */
+
+// app.get("/api/health", (req, res) => {
+//   res.json({
+//     status: "OK",
+//     message: "CertVerify API running",
+//   });
+// });
+
+// /* ───────── ROUTES ───────── */
+
+// const authRoutes = require("./modules/auth/auth.routes");
+// const studentRoutes = require("./modules/students/students.routes");
+
+// app.use("/api/auth", authRoutes);
+// app.use("/api/students", studentRoutes);
+
+// /* ───────── SERVER START ───────── */
+
+// const PORT = process.env.PORT || 5002;
+
+// app.listen(PORT, () => {
+//   console.log(`🚀 Server running on port ${PORT}`);
+// });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+require("dotenv").config();
+
+const express = require("express");
+const cors = require("cors");
+const mysql = require("mysql2");
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+/* ───────── MYSQL CONNECTION ───────── */
+
+const db = mysql.createConnection({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+});
+
+db.connect((err) => {
+  if (err) {
+    console.log("❌ MySQL connection failed:", err.message);
+  } else {
+    console.log("✅ MySQL connected successfully");
   }
-};
+});
 
-startServer();
+/* ───────── HEALTH CHECK ───────── */
+
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "OK",
+    message: "CertVerify API running",
+  });
+});
+
+/* ───────── ROUTES ───────── */
+
+const authRoutes = require("./modules/auth/auth.routes");
+const studentRoutes = require("./modules/students/students.routes");
+
+app.use("/api/auth", authRoutes);
+app.use("/api/students", studentRoutes);
+
+/* ───────── SERVER START ───────── */
+
+const PORT = process.env.PORT || 5002;
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});

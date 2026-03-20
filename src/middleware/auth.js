@@ -1,43 +1,35 @@
-const jwt = require('jsonwebtoken');
-const { pool } = require('../config/database');
-const response = require('../utils/response');
+const jwt = require("jsonwebtoken");
 
-const authenticate = async (req, res, next) => {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader?.startsWith('Bearer ')) {
-      return response.unauthorized(res, 'Access token is required');
-    }
+/* AUTHENTICATE USER */
 
-    const token = authHeader.substring(7);
-    let decoded;
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (err) {
-      return response.unauthorized(
-        res,
-        err.name === 'TokenExpiredError' ? 'Token expired' : 'Invalid token'
-      );
-    }
+function authenticate(req, res, next) {
+  const authHeader = req.headers.authorization;
 
-    const [rows] = await pool.query(
-      'SELECT id, name, email, role, is_active FROM users WHERE id = ? AND is_active = TRUE',
-      [decoded.userId]
-    );
-    if (!rows.length) return response.unauthorized(res, 'User not found or inactive');
-
-    req.user = rows[0];
-    next();
-  } catch (error) {
-    console.error('Auth middleware error:', error);
-    return response.error(res, 'Authentication failed');
+  if (!authHeader) {
+    return res.status(401).json({ message: "Token missing" });
   }
-};
 
-const adminOnly = (req, res, next) => {
-  if (!req.user) return response.unauthorized(res, 'Not authenticated');
-  if (req.user.role !== 'admin') return response.forbidden(res, 'Admin access required');
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "secretkey");
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: "Invalid token" });
+  }
+}
+
+/* ADMIN ONLY */
+
+function adminOnly(req, res, next) {
+  if (!req.user || req.user.role !== "admin") {
+    return res.status(403).json({ message: "Admin access required" });
+  }
   next();
+}
+module.exports = {
+  authenticate,
+  adminOnly
 };
-
 module.exports = { authenticate, adminOnly };

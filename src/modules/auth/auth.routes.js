@@ -1,54 +1,73 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { body } = require('express-validator');
-const ctrl = require('./auth.controller');
-const { authenticate, adminOnly } = require('../../middleware/auth');
-const { validateRequest } = require('../../middleware/errorHandler');
+const { body } = require("express-validator");
 
-// Public: user registration (always creates 'user' role)
-router.post('/register',
+const ctrl = require("./auth.controller");
+const { authenticate, adminOnly } = require("../../middleware/auth");
+const { validateRequest } = require("../../middleware/errorHandler");
+
+/* ===============================
+   PUBLIC ROUTES
+================================ */
+
+// User Signup
+router.post(
+  "/signup",
   [
-    body('name').notEmpty().withMessage('Name is required'),
-    body('email').isEmail().normalizeEmail().withMessage('Valid email required'),
-    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+    body("name").notEmpty().withMessage("Name is required"),
+    body("email").isEmail().withMessage("Valid email required"),
+    body("password")
+      .isLength({ min: 6 })
+      .withMessage("Password must be at least 6 characters"),
     validateRequest,
   ],
   ctrl.register
 );
 
-// Public: login
-router.post('/login',
+// User Login
+router.post(
+  "/login",
   [
-    body('email').isEmail().normalizeEmail().withMessage('Valid email required'),
-    body('password').notEmpty().withMessage('Password is required'),
+    body("email").isEmail().withMessage("Valid email required"),
+    body("password").notEmpty().withMessage("Password is required"),
     validateRequest,
   ],
   ctrl.login
 );
 
-// Protected: get own profile
-router.get('/me', authenticate, ctrl.getMe);
+/* ===============================
+   AUTHENTICATED USER
+================================ */
 
-// Admin: list all users
-router.get('/users', authenticate, adminOnly, ctrl.getUsers);
+router.get("/me", authenticate, ctrl.getMe);
 
-// Admin: create another admin account
-router.post('/admin/create',
-  authenticate, adminOnly,
+/* ===============================
+   ADMIN ROUTES
+================================ */
+
+router.get("/users", authenticate, adminOnly, ctrl.getUsers);
+
+router.post(
+  "/admin/create",
+  authenticate,
+  adminOnly,
   [
-    body('name').notEmpty().withMessage('Name is required'),
-    body('email').isEmail().normalizeEmail().withMessage('Valid email required'),
-    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+    body("name").notEmpty().withMessage("Name is required"),
+    body("email").isEmail().withMessage("Valid email required"),
+    body("password")
+      .isLength({ min: 6 })
+      .withMessage("Password must be at least 6 characters"),
     validateRequest,
   ],
   ctrl.createAdmin
 );
 
-// Admin: toggle user active status
-router.patch('/users/:id/status',
-  authenticate, adminOnly,
+router.patch(
+  "/users/:id/status",
+  authenticate,
+  adminOnly,
   [
-    body('isActive').isBoolean().withMessage('isActive must be a boolean'),
+    body("isActive").isBoolean().withMessage("isActive must be boolean"),
     validateRequest,
   ],
   ctrl.updateUserStatus
