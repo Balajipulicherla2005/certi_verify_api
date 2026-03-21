@@ -1,4 +1,4 @@
-CertVerify API
+CertVerify API:
 
 Backend API for the CertVerify Certificate Verification System.
 This system allows organizations to create, manage, and verify internship certificates securely.
@@ -99,4 +99,15 @@ DB_NAME=cert_verify_db
 
 JWT_SECRET=your_secret_key
 
+How to run the project:
+   Install dependencies:
 
+npm install
+
+Run the server
+
+npm start
+
+Server will start at
+
+http://localhost:5002
